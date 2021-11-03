@@ -11,5 +11,5 @@ have fun at your own risk!!!
 <ul>
   <li>Open Powershell as Administrator and enter <code>Set-ExecutionPolicy Unrestricted</code></li>
 <li>Make sure you have Developer mode enabled in Windows settings</li>
-<li>Run <code>Install.ps1</code> file</li>
+<li>Execute <code>Install.ps1</code> file in PowerShell</li>
 </ul>
