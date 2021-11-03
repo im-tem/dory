@@ -177,6 +177,8 @@ namespace uwptest
         public string anm2path;
         public int defaultanimindex;
         public int animindextoplay;
+        float renderscale = 1.0f;
+        float targetrenderscale = 1.0f;
         public bool IsANM2LoadFinished = false;
 
         public MainPage()
@@ -240,7 +242,8 @@ namespace uwptest
                         {
                             foreach (XmlNode contentnode in xnode)
                             {
-                                if (contentnode.Name == "Spritesheets") {
+                                if (contentnode.Name == "Spritesheets")
+                                {
                                     foreach (XmlNode spritesheetnode in contentnode)
                                     {
                                         XmlAttributeCollection attrColl = spritesheetnode.Attributes;
@@ -260,7 +263,7 @@ namespace uwptest
                                         }
                                         Spritesheet output = new Spritesheet(spritesheetpath, spritesheetid);
                                         output.LoadCanvas(anm2path, drawingdevice);
-                                        spritesheetlist.Insert(spritesheetid,output);
+                                        spritesheetlist.Insert(spritesheetid, output);
                                     }
                                 }
                                 if (contentnode.Name == "Layers")
@@ -311,7 +314,8 @@ namespace uwptest
                                 string AnimName = "";
                                 int AnimFrameNum = 0;
                                 bool AnimLoop = false;
-                                if (animnode.Name == "Animation") {
+                                if (animnode.Name == "Animation")
+                                {
                                     XmlAttributeCollection animAttr = animnode.Attributes;
                                     for (int i = 0; i < animAttr.Count; i++)
                                     {
@@ -356,7 +360,7 @@ namespace uwptest
                                                         if (attr.Name == "LayerId")
                                                         {
                                                             animlayerid = Convert.ToInt32(attr.Value);
-                                                            Debug.WriteLine("Layer Id: "+Convert.ToString(animlayerid));
+                                                            Debug.WriteLine("Layer Id: " + Convert.ToString(animlayerid));
                                                         }
                                                     }
                                                     ANM2LayerAnimation layeranim = new ANM2LayerAnimation(Int32.Parse(animlayerattr["LayerId"].Value), Boolean.Parse(animlayerattr["Visible"].Value), layerlist);
@@ -364,7 +368,7 @@ namespace uwptest
                                                     foreach (XmlNode framenode in animlayernode)
                                                     {
                                                         XmlAttributeCollection frameAttr = framenode.Attributes;
-                                                        ANM2LayerFrame frame = new ANM2LayerFrame(Single.Parse(frameAttr["XPosition"].Value), Single.Parse(frameAttr["YPosition"].Value), startframe, Int32.Parse(frameAttr["Delay"].Value), Int32.Parse(frameAttr["Width"].Value), Int32.Parse(frameAttr["Height"].Value), Double.Parse(frameAttr["XPivot"].Value), Double.Parse(frameAttr["YPivot"].Value), Double.Parse(frameAttr["XCrop"].Value), Double.Parse(frameAttr["YCrop"].Value), Single.Parse(frameAttr["XScale"].Value), Single.Parse(frameAttr["YScale"].Value), Single.Parse(frameAttr["Rotation"].Value), Boolean.Parse(frameAttr["Interpolated"].Value), Boolean.Parse(frameAttr["Visible"].Value),Single.Parse(frameAttr["AlphaTint"].Value));
+                                                        ANM2LayerFrame frame = new ANM2LayerFrame(Single.Parse(frameAttr["XPosition"].Value), Single.Parse(frameAttr["YPosition"].Value), startframe, Int32.Parse(frameAttr["Delay"].Value), Int32.Parse(frameAttr["Width"].Value), Int32.Parse(frameAttr["Height"].Value), Double.Parse(frameAttr["XPivot"].Value), Double.Parse(frameAttr["YPivot"].Value), Double.Parse(frameAttr["XCrop"].Value), Double.Parse(frameAttr["YCrop"].Value), Single.Parse(frameAttr["XScale"].Value), Single.Parse(frameAttr["YScale"].Value), Single.Parse(frameAttr["Rotation"].Value), Boolean.Parse(frameAttr["Interpolated"].Value), Boolean.Parse(frameAttr["Visible"].Value), Single.Parse(frameAttr["AlphaTint"].Value));
                                                         //                                                        layeranim.FrameList.Add();
                                                         layeranim.FrameList.Add(frame);
                                                         startframe += Int32.Parse(frameAttr["Delay"].Value);
@@ -407,7 +411,8 @@ namespace uwptest
             if (file != null && file.Path != null)
             {
                 Debug.WriteLine(file.Path);
-                using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite)) {
+                using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                {
                     plum = await CanvasBitmap.LoadAsync(drawingdevice, stream);
                 }
             }
@@ -422,13 +427,24 @@ namespace uwptest
         private void canvas_CreateResources(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.CanvasCreateResourcesEventArgs args)
         {
         }
-        Vector2 canvasoffset = new Vector2(0,0);
+        Vector2 canvasoffset = new Vector2(250f, 250f);
         Vector2 canvasvelocity = new Vector2(0, 0);
         Vector2 previousposition = new Vector2(0, 0);
         Vector2 applyposition = new Vector2(0, 0);
         bool IsMouseBtnHeld = false;
         private async void canvas_Update(Microsoft.Graphics.Canvas.UI.Xaml.ICanvasAnimatedControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedUpdateEventArgs args)
         {
+            if (targetrenderscale != renderscale)
+            {
+                if (targetrenderscale > renderscale)
+                {
+                    renderscale += 0.05f;
+                }
+                if (targetrenderscale < renderscale)
+                {
+                    renderscale -= 0.05f;
+                }
+            }
             if (IsPlaying == true)
             {
                 framecounter += PlaybackSpeed;
@@ -453,13 +469,13 @@ namespace uwptest
             if (plum != null)
             {
                 args.DrawingSession.DrawText("Renderer Placeholder", 100, 120, Windows.UI.Colors.White);
-                var transform = Matrix3x2.CreateRotation(0, new Vector2(0,0)) *
-                                Matrix3x2.CreateScale(2.0f,2.0f, new Vector2(0,0)) *
+                var transform = Matrix3x2.CreateRotation(0, new Vector2(0, 0)) *
+                                Matrix3x2.CreateScale(2.0f, 2.0f, new Vector2(0, 0)) *
                                 Matrix3x2.CreateTranslation(new Vector2(0, 0));
-                args.DrawingSession.DrawImage(plum, new Vector2(125, 0),new Rect(0,0,192,192),1,0, new Matrix4x4(transform));
+                args.DrawingSession.DrawImage(plum, new Vector2(125, 0), new Rect(0, 0, 192, 192), 1, 0, new Matrix4x4(transform));
             }
             Color AxisColor = Color.FromArgb(191, 255, 0, 0);
-            args.DrawingSession.DrawLine(new Vector2(-999+canvasoffset.X, canvasoffset.Y), new Vector2(999 + canvasoffset.X, canvasoffset.Y),AxisColor);
+            args.DrawingSession.DrawLine(new Vector2(-999 + canvasoffset.X, canvasoffset.Y), new Vector2(999 + canvasoffset.X, canvasoffset.Y), AxisColor);
             args.DrawingSession.DrawLine(new Vector2(canvasoffset.X, -999 + canvasoffset.Y), new Vector2(canvasoffset.X, 999 + canvasoffset.Y), AxisColor);
             if (IsANM2LoadFinished == true)
             {
@@ -468,7 +484,7 @@ namespace uwptest
                 foreach (ANM2LayerAnimation layeranim in layeranimlist)
                 {
                     ANM2LayerFrame layerframe;
-                    if (layeranim.FrameList!=null && layeranim.FrameList.Count > 0)
+                    if (layeranim.FrameList != null && layeranim.FrameList.Count > 0)
                     {
                         try
                         {
@@ -476,7 +492,7 @@ namespace uwptest
                             canvasvelocity.X = canvasvelocity.X * 0.8f;
                             canvasvelocity.Y = canvasvelocity.Y * 0.8f;
                             layerframe = layeranim.FrameList[layeranim.CurrentIndex];
-                            bool CanChangeFrame=layeranim.CurrentIndex + 1 < layeranim.FrameList.Count;
+                            bool CanChangeFrame = layeranim.CurrentIndex + 1 < layeranim.FrameList.Count;
                             //                     Debug.WriteLine(layeranim.LayerId);
                             float finalscalex = layerframe.XScale;
                             float finalscaley = layerframe.YScale;
@@ -489,9 +505,9 @@ namespace uwptest
                             CanvasBitmap spritesheettodraw;
                             if (layerframe.Interpolated == true && CanChangeFrame)
                             {
-                                ANM2LayerFrame nextframe= layeranim.FrameList[layeranim.CurrentIndex+1];
-                                float lerppercent = (framecounter-layerframe.StartFrame)/layerframe.Delay;
-                                finalscalex = layerframe.XScale * (1 - lerppercent) + nextframe.XScale*lerppercent;
+                                ANM2LayerFrame nextframe = layeranim.FrameList[layeranim.CurrentIndex + 1];
+                                float lerppercent = (framecounter - layerframe.StartFrame) / layerframe.Delay;
+                                finalscalex = layerframe.XScale * (1 - lerppercent) + nextframe.XScale * lerppercent;
                                 finalscaley = layerframe.YScale * (1 - lerppercent) + nextframe.YScale * lerppercent;
                                 finalpositionx = layerframe.XPosition * (1 - lerppercent) + nextframe.XPosition * lerppercent;
                                 finalpositiony = layerframe.YPosition * (1 - lerppercent) + nextframe.YPosition * lerppercent;
@@ -509,21 +525,21 @@ namespace uwptest
                                 finalscaley = finalscaley * -1;
                                 flipy = -1;
                             }
-                            Vector2 testvec = new Vector2(Convert.ToSingle(1*layerframe.XPivot),Convert.ToSingle(1*layerframe.YPivot));
+                            Vector2 testvec = new Vector2(Convert.ToSingle(1 * layerframe.XPivot), Convert.ToSingle(1 * layerframe.YPivot));
                             Vector2 rotatedpivotvec = new Vector2(Convert.ToSingle(1 * layerframe.XPivot), Convert.ToSingle(1 * layerframe.YPivot));
-                            rotatedpivotvec = Vector2.Transform(rotatedpivotvec, Matrix3x2.CreateRotation(((180-finalrotation) * (Convert.ToSingle(Math.PI) / 180))));
-                            var transform = Matrix3x2.CreateRotation(finalrotation*(Convert.ToSingle(Math.PI)/180),testvec) *
-                                            Matrix3x2.CreateScale(flipx, flipy, new Vector2(0,0)) *
-//                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
-                                            Matrix3x2.CreateTranslation(new Vector2(canvasoffset.X + finalpositionx, canvasoffset.Y + finalpositiony));       //this is obviously wrong!!!
+                            rotatedpivotvec = Vector2.Transform(rotatedpivotvec, Matrix3x2.CreateRotation(((180 - finalrotation) * (Convert.ToSingle(Math.PI) / 180))));
+                            var transform = Matrix3x2.CreateRotation(finalrotation * (Convert.ToSingle(Math.PI) / 180), testvec) *
+                                            Matrix3x2.CreateScale(flipx, flipy, new Vector2(0, 0)) *
+                                            //                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
+                                            Matrix3x2.CreateTranslation(new Vector2((canvasoffset.X + finalpositionx * renderscale), (canvasoffset.Y + finalpositiony * renderscale)));       //this is obviously wrong!!!
                             //                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect((canvasoffset.X + finalpositionx * 1.0f), (canvasoffset.Y + finalpositiony * 1.0f), layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
-                            if (layeranim.Visible==true && layerframe.Visible==true)
+                            if (layeranim.Visible == true && layerframe.Visible == true)
                             {
-                                args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X*finalscalex*0.01f, rotatedpivotvec.Y * finalscaley * 0.01f, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), finalalpha/255, 0, new Matrix4x4(transform));
+                                args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X * finalscalex * 0.01f * renderscale, rotatedpivotvec.Y * finalscaley * 0.01f * renderscale, layerframe.Width * 0.01f * finalscalex * renderscale, layerframe.Height * 0.01f * finalscaley * renderscale), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), finalalpha / 255, 0, new Matrix4x4(transform));
                             }
                             else
                             {
-                                Debug.WriteLine(Convert.ToString(layeranim.Visible)+" "+ Convert.ToString(layerframe.Visible));
+                                Debug.WriteLine(Convert.ToString(layeranim.Visible) + " " + Convert.ToString(layerframe.Visible));
                             }
                             if (ResetFrames == true)
                             {
@@ -569,8 +585,8 @@ namespace uwptest
                         previousposition.Y = Convert.ToSingle(pos.Y);
                     }
 
-                    applyposition.X = (Convert.ToSingle(pos.X) - previousposition.X)*0.3f;
-                    applyposition.Y = (Convert.ToSingle(pos.Y) - previousposition.Y)*0.3f;
+                    applyposition.X = (Convert.ToSingle(pos.X) - previousposition.X) * 0.3f;
+                    applyposition.Y = (Convert.ToSingle(pos.Y) - previousposition.Y) * 0.3f;
                     canvasvelocity = canvasvelocity + applyposition;
                     previousposition.X = Convert.ToSingle(pos.X);
                     previousposition.Y = Convert.ToSingle(pos.Y);
@@ -579,7 +595,7 @@ namespace uwptest
                 {
                     if (ptrPt.Properties.IsRightButtonPressed)
                     {
-                        canvasoffset = new Vector2(0, 0);
+                        canvasoffset = new Vector2(250f, 250f);
                         canvasvelocity = new Vector2(0, 0);
                         previousposition = new Vector2(0, 0);
                         applyposition = new Vector2(0, 0);
@@ -611,9 +627,29 @@ namespace uwptest
                 IsPlaying = false;
                 PausePlayBtn.Content = "";
             }
-            else {
+            else
+            {
                 IsPlaying = true;
                 PausePlayBtn.Content = "";
+            }
+        }
+
+        private async void MenuFlyoutItem_ClickFS(object sender, RoutedEventArgs e)
+        {
+            await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-broadfilesystemaccess"));
+        }
+
+        private void anm2canvas_PointerWheelChanged(object sender, PointerRoutedEventArgs e)
+        {
+            Windows.UI.Input.PointerPoint ptrPt = e.GetCurrentPoint(anm2canvas);
+            int MouseWheelDelta = ptrPt.Properties.MouseWheelDelta;
+            if (MouseWheelDelta > 0)
+            {
+                targetrenderscale += 0.2f;
+            }
+            if (MouseWheelDelta < 0)
+            {
+                targetrenderscale -= 0.2f;
             }
         }
     }

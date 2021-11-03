@@ -13,18 +13,11 @@
     <Grid>
         <Image Source="Assets/Square44x44Logo.png" Margin="9,9,0,0" Width="20" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" />
         <TextBlock x:Name="TitleBarText" Text="Dory (dev)" Margin="30,8,0,0"/>
-        <canvas:CanvasAnimatedControl x:Name="anm2canvas" Draw="canvas_Draw" PointerMoved="anm2canvas_PointerMoved" CreateResources="canvas_CreateResources" Update="canvas_Update" Margin="220,70,310,50"/>
+        <canvas:CanvasAnimatedControl x:Name="anm2canvas" PointerWheelChanged="anm2canvas_PointerWheelChanged" Draw="canvas_Draw" PointerMoved="anm2canvas_PointerMoved" CreateResources="canvas_CreateResources" Update="canvas_Update" Margin="220,70,310,50"/>
         <muxc:MenuBar VerticalAlignment="Top" Margin="0,30,0,0" Height="40">
-            <muxc:MenuBarItem Title="File">
-                <MenuFlyoutItem Text="New"/>
-                <MenuFlyoutItem Text="Open" Click="MenuFlyoutItem_Click_OpenAsync"/>
-            </muxc:MenuBarItem>
-            <muxc:MenuBarItem Title="Renderer debug">
-                <MenuFlyoutItem Text="Locate Baby Plum" Click="MenuFlyoutItem_Click_OpenPlumAsync"/>
-                <MenuFlyoutItem Text="Dispose Baby Plum" Click="MenuFlyoutItem_Click_RemovePlumAsync"/>
-            </muxc:MenuBarItem>
-            <muxc:MenuBarItem Title="XML debug">
-                <MenuFlyoutItem Text="Read ANM2 file" Click="MenuFlyoutItem_Click_ReadANM2 "/>
+            <muxc:MenuBarItem Title="Menu">
+                <MenuFlyoutItem Text="Open ANM2" Click="MenuFlyoutItem_Click_ReadANM2"/>
+                <MenuFlyoutItem Text="Enable &quot;File system&quot; permission" Click="MenuFlyoutItem_ClickFS"/>
             </muxc:MenuBarItem>
         </muxc:MenuBar>
         <ListView x:Name="SpritesheetList" Header="Spritesheets" Height="300" Width="300" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,80,10,10">
