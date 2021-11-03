@@ -79,6 +79,7 @@ namespace uwptest
         public int Delay { get; set; }
         public int StartFrame { get; set; }
         public bool Interpolated { get; set; }
+        public bool Visible { get; set; }
         public float Rotation { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -86,17 +87,11 @@ namespace uwptest
         public double YCrop { get; set; }
         public float XScale { get; set; }
         public float YScale { get; set; }
+        public float AlphaTint { get; set; }
 
 
-        public float XInterpolateScale { get; set; }
-        public float YInterpolateScale { get; set; }
-        public float XInterpolatePosition { get; set; }
-        public float YInterpolatePosition { get; set; }
-        public double XInterpolatePivot { get; set; }
-        public double YInterpolatePivot { get; set; }
 
-
-        public ANM2LayerFrame(float xpos, float ypos, int startframe, int delay, int width, int height, double xpivot, double ypivot, double xcrop, double ycrop, float xscale,float yscale,float rotation,bool interpolate)
+        public ANM2LayerFrame(float xpos, float ypos, int startframe, int delay, int width, int height, double xpivot, double ypivot, double xcrop, double ycrop, float xscale,float yscale,float rotation,bool interpolate, bool visible,float alphatint)
         {
             XPosition = xpos;
             YPosition = ypos;
@@ -112,6 +107,8 @@ namespace uwptest
             YScale = yscale;
             Rotation = rotation;
             Interpolated = interpolate;
+            Visible = visible;
+            AlphaTint = alphatint;
         }
     }
 
@@ -213,7 +210,7 @@ namespace uwptest
         public float framecounter = 0;
         public float totalframecount = 0;
         public bool IsPlaying = false;
-        public float PlaybackSpeed = (30.0f / 60.0f);
+        public float PlaybackSpeed = (20.0f / 60.0f);
         public bool ResetFrames = false;
 
         private async void MenuFlyoutItem_Click_ReadANM2(object sender, RoutedEventArgs e)
@@ -353,7 +350,6 @@ namespace uwptest
                                                 {
                                                     XmlAttributeCollection animlayerattr = animlayernode.Attributes;
                                                     int animlayerid = 0;
-                                                    bool visible = false;
                                                     for (int i = 0; i < animlayerattr.Count; i++)
                                                     {
                                                         XmlAttribute attr = animAttr[i];
@@ -362,20 +358,13 @@ namespace uwptest
                                                             animlayerid = Convert.ToInt32(attr.Value);
                                                             Debug.WriteLine("Layer Id: "+Convert.ToString(animlayerid));
                                                         }
-                                                        if (attr.Name == "Visible")
-                                                        {
-                                                            if (attr.Value == "true")
-                                                            {
-                                                                visible = true;
-                                                            }
-                                                        }
                                                     }
-                                                    ANM2LayerAnimation layeranim = new ANM2LayerAnimation(Int32.Parse(animlayerattr["LayerId"].Value), visible, layerlist);
+                                                    ANM2LayerAnimation layeranim = new ANM2LayerAnimation(Int32.Parse(animlayerattr["LayerId"].Value), Boolean.Parse(animlayerattr["Visible"].Value), layerlist);
                                                     int startframe = 0;
                                                     foreach (XmlNode framenode in animlayernode)
                                                     {
                                                         XmlAttributeCollection frameAttr = framenode.Attributes;
-                                                        ANM2LayerFrame frame = new ANM2LayerFrame(Single.Parse(frameAttr["XPosition"].Value), Single.Parse(frameAttr["YPosition"].Value), startframe, Int32.Parse(frameAttr["Delay"].Value), Int32.Parse(frameAttr["Width"].Value), Int32.Parse(frameAttr["Height"].Value), Double.Parse(frameAttr["XPivot"].Value), Double.Parse(frameAttr["YPivot"].Value), Double.Parse(frameAttr["XCrop"].Value), Double.Parse(frameAttr["YCrop"].Value), Single.Parse(frameAttr["XScale"].Value), Single.Parse(frameAttr["YScale"].Value), Single.Parse(frameAttr["Rotation"].Value), Boolean.Parse(frameAttr["Interpolated"].Value));
+                                                        ANM2LayerFrame frame = new ANM2LayerFrame(Single.Parse(frameAttr["XPosition"].Value), Single.Parse(frameAttr["YPosition"].Value), startframe, Int32.Parse(frameAttr["Delay"].Value), Int32.Parse(frameAttr["Width"].Value), Int32.Parse(frameAttr["Height"].Value), Double.Parse(frameAttr["XPivot"].Value), Double.Parse(frameAttr["YPivot"].Value), Double.Parse(frameAttr["XCrop"].Value), Double.Parse(frameAttr["YCrop"].Value), Single.Parse(frameAttr["XScale"].Value), Single.Parse(frameAttr["YScale"].Value), Single.Parse(frameAttr["Rotation"].Value), Boolean.Parse(frameAttr["Interpolated"].Value), Boolean.Parse(frameAttr["Visible"].Value),Single.Parse(frameAttr["AlphaTint"].Value));
                                                         //                                                        layeranim.FrameList.Add();
                                                         layeranim.FrameList.Add(frame);
                                                         startframe += Int32.Parse(frameAttr["Delay"].Value);
@@ -443,7 +432,6 @@ namespace uwptest
             if (IsPlaying == true)
             {
                 framecounter += PlaybackSpeed;
-                Debug.WriteLine(PlaybackSpeed);
                 if (framecounter >= totalframecount)
                 {
                     framecounter = 0;
@@ -495,6 +483,9 @@ namespace uwptest
                             float finalpositionx = layerframe.XPosition;
                             float finalpositiony = layerframe.YPosition;
                             float finalrotation = layerframe.Rotation;
+                            float finalalpha = layerframe.AlphaTint;
+                            float flipx = 1;
+                            float flipy = 1;
                             CanvasBitmap spritesheettodraw;
                             if (layerframe.Interpolated == true && CanChangeFrame)
                             {
@@ -505,17 +496,35 @@ namespace uwptest
                                 finalpositionx = layerframe.XPosition * (1 - lerppercent) + nextframe.XPosition * lerppercent;
                                 finalpositiony = layerframe.YPosition * (1 - lerppercent) + nextframe.YPosition * lerppercent;
                                 finalrotation = layerframe.Rotation * (1 - lerppercent) + nextframe.Rotation * lerppercent;
+                                finalalpha = layerframe.AlphaTint * (1 - lerppercent) + nextframe.AlphaTint * lerppercent;
                             }
                             spritesheettodraw = spritesheetlist[layeranim.Layer.SpritesheetId].Bitmap;
+                            if (finalscalex < 0)
+                            {
+                                finalscalex = finalscalex * -1;
+                                flipx = -1;
+                            }
+                            if (finalscaley < 0)
+                            {
+                                finalscaley = finalscaley * -1;
+                                flipy = -1;
+                            }
                             Vector2 testvec = new Vector2(Convert.ToSingle(1*layerframe.XPivot),Convert.ToSingle(1*layerframe.YPivot));
                             Vector2 rotatedpivotvec = new Vector2(Convert.ToSingle(1 * layerframe.XPivot), Convert.ToSingle(1 * layerframe.YPivot));
                             rotatedpivotvec = Vector2.Transform(rotatedpivotvec, Matrix3x2.CreateRotation(((180-finalrotation) * (Convert.ToSingle(Math.PI) / 180))));
                             var transform = Matrix3x2.CreateRotation(finalrotation*(Convert.ToSingle(Math.PI)/180),testvec) *
-                                            Matrix3x2.CreateScale(1, 1, new Vector2(0, 0)) *
+                                            Matrix3x2.CreateScale(flipx, flipy, new Vector2(0, 0)) *
 //                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
                                             Matrix3x2.CreateTranslation(new Vector2(canvasoffset.X + finalpositionx, canvasoffset.Y + finalpositiony));       //this is obviously wrong!!!
                             //                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect((canvasoffset.X + finalpositionx * 1.0f), (canvasoffset.Y + finalpositiony * 1.0f), layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
-                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X, rotatedpivotvec.Y, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
+                            if (layeranim.Visible==true && layerframe.Visible==true)
+                            {
+                                args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X, rotatedpivotvec.Y, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), finalalpha/255, 0, new Matrix4x4(transform));
+                            }
+                            else
+                            {
+                                Debug.WriteLine(Convert.ToString(layeranim.Visible)+" "+ Convert.ToString(layerframe.Visible));
+                            }
                             if (ResetFrames == true)
                             {
                                 layeranim.CurrentIndex = 0;
@@ -560,8 +569,8 @@ namespace uwptest
                         previousposition.Y = Convert.ToSingle(pos.Y);
                     }
 
-                    applyposition.X = (Convert.ToSingle(pos.X) - previousposition.X)*0.05f;
-                    applyposition.Y = (Convert.ToSingle(pos.Y) - previousposition.Y)*0.05f;
+                    applyposition.X = (Convert.ToSingle(pos.X) - previousposition.X)*0.3f;
+                    applyposition.Y = (Convert.ToSingle(pos.Y) - previousposition.Y)*0.3f;
                     canvasvelocity = canvasvelocity + applyposition;
                     previousposition.X = Convert.ToSingle(pos.X);
                     previousposition.Y = Convert.ToSingle(pos.Y);
