@@ -213,7 +213,7 @@ namespace uwptest
         public float framecounter = 0;
         public float totalframecount = 0;
         public bool IsPlaying = false;
-        public float PlaybackSpeed = (15.0f/60.0f);
+        public float PlaybackSpeed = (30.0f / 60.0f);
         public bool ResetFrames = false;
 
         private async void MenuFlyoutItem_Click_ReadANM2(object sender, RoutedEventArgs e)
@@ -470,6 +470,9 @@ namespace uwptest
                                 Matrix3x2.CreateTranslation(new Vector2(0, 0));
                 args.DrawingSession.DrawImage(plum, new Vector2(125, 0),new Rect(0,0,192,192),1,0, new Matrix4x4(transform));
             }
+            Color AxisColor = Color.FromArgb(191, 255, 0, 0);
+            args.DrawingSession.DrawLine(new Vector2(-999+canvasoffset.X, canvasoffset.Y), new Vector2(999 + canvasoffset.X, canvasoffset.Y),AxisColor);
+            args.DrawingSession.DrawLine(new Vector2(canvasoffset.X, -999 + canvasoffset.Y), new Vector2(canvasoffset.X, 999 + canvasoffset.Y), AxisColor);
             if (IsANM2LoadFinished == true)
             {
                 ANM2Animation currentanim = animlist[animindextoplay];
@@ -504,11 +507,15 @@ namespace uwptest
                                 finalrotation = layerframe.Rotation * (1 - lerppercent) + nextframe.Rotation * lerppercent;
                             }
                             spritesheettodraw = spritesheetlist[layeranim.Layer.SpritesheetId].Bitmap;
-                            var transform = Matrix3x2.CreateRotation(finalrotation, new Vector2(0, 0)) *
+                            Vector2 testvec = new Vector2(Convert.ToSingle(1*layerframe.XPivot),Convert.ToSingle(1*layerframe.YPivot));
+                            Vector2 rotatedpivotvec = new Vector2(Convert.ToSingle(1 * layerframe.XPivot), Convert.ToSingle(1 * layerframe.YPivot));
+                            rotatedpivotvec = Vector2.Transform(rotatedpivotvec, Matrix3x2.CreateRotation(((180-finalrotation) * (Convert.ToSingle(Math.PI) / 180))));
+                            var transform = Matrix3x2.CreateRotation(finalrotation*(Convert.ToSingle(Math.PI)/180),testvec) *
                                             Matrix3x2.CreateScale(1, 1, new Vector2(0, 0)) *
-                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
-//                            args.DrawingSession.DrawImage(spritesheettodraw, new Vector2(canvasoffset.X + finalpositionx*1.0f, canvasoffset.Y + finalpositiony * 1.0f), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width*0.01f*finalscalex, layerframe.Height*0.01f*finalscaley), 1, 0, new Matrix4x4(transform));
-                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect((canvasoffset.X + finalpositionx * 1.0f), (canvasoffset.Y + finalpositiony * 1.0f), layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
+//                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
+                                            Matrix3x2.CreateTranslation(new Vector2(canvasoffset.X + finalpositionx, canvasoffset.Y + finalpositiony));       //this is obviously wrong!!!
+                            //                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect((canvasoffset.X + finalpositionx * 1.0f), (canvasoffset.Y + finalpositiony * 1.0f), layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
+                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X, rotatedpivotvec.Y, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
                             if (ResetFrames == true)
                             {
                                 layeranim.CurrentIndex = 0;
