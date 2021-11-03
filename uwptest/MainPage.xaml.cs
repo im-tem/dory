@@ -513,13 +513,13 @@ namespace uwptest
                             Vector2 rotatedpivotvec = new Vector2(Convert.ToSingle(1 * layerframe.XPivot), Convert.ToSingle(1 * layerframe.YPivot));
                             rotatedpivotvec = Vector2.Transform(rotatedpivotvec, Matrix3x2.CreateRotation(((180-finalrotation) * (Convert.ToSingle(Math.PI) / 180))));
                             var transform = Matrix3x2.CreateRotation(finalrotation*(Convert.ToSingle(Math.PI)/180),testvec) *
-                                            Matrix3x2.CreateScale(flipx, flipy, new Vector2(0, 0)) *
+                                            Matrix3x2.CreateScale(flipx, flipy, new Vector2(0,0)) *
 //                                            Matrix3x2.CreateTranslation(new Vector2(Convert.ToSingle(layerframe.XPivot * -1.0f), (Convert.ToSingle(layerframe.YPivot*-1.0f))));
                                             Matrix3x2.CreateTranslation(new Vector2(canvasoffset.X + finalpositionx, canvasoffset.Y + finalpositiony));       //this is obviously wrong!!!
                             //                            args.DrawingSession.DrawImage(spritesheettodraw, new Rect((canvasoffset.X + finalpositionx * 1.0f), (canvasoffset.Y + finalpositiony * 1.0f), layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), 1, 0, new Matrix4x4(transform));
                             if (layeranim.Visible==true && layerframe.Visible==true)
                             {
-                                args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X, rotatedpivotvec.Y, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), finalalpha/255, 0, new Matrix4x4(transform));
+                                args.DrawingSession.DrawImage(spritesheettodraw, new Rect(rotatedpivotvec.X*finalscalex*0.01f, rotatedpivotvec.Y * finalscaley * 0.01f, layerframe.Width * 0.01f * finalscalex, layerframe.Height * 0.01f * finalscaley), new Rect(layerframe.XCrop, layerframe.YCrop, layerframe.Width, layerframe.Height), finalalpha/255, 0, new Matrix4x4(transform));
                             }
                             else
                             {
